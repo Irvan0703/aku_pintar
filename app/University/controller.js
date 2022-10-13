@@ -1,4 +1,5 @@
-const Alumni = require('./model');
+const University = require('./model');
+const { Op } = require('sequelize');
 const fs = require('fs');
 const path = require('path');
 
@@ -18,10 +19,10 @@ const store = async(req, res, next) =>{
 
         src.on('end', async()=>{
             try{
-                await Alumni.sync();
-                await Alumni.create({...payload, alumnus_image: filename});
+                await University.sync();
+                await University.create({...payload, alumnus_image: filename});
                 res.json({
-                    "message": "Alumni Created"
+                    "message": "University Created"
                 });
             } catch(err){
                 fs.unlinkSync(target_path);
@@ -33,10 +34,10 @@ const store = async(req, res, next) =>{
             next(err);
         });
     } else {
-        await Alumni.sync();
-        await Alumni.create(payload);
+        await University.sync();
+        await University.create(payload);
         res.json({
-            "message": "Alumni Created"
+            "message": "University Created"
         });
     }
     } catch(e) {
@@ -46,9 +47,22 @@ const store = async(req, res, next) =>{
 
 
 const index = async(req, res) =>{
+
+    const {search} = req.query;
+    let exec = {};
+    if (search){
+        exec = {
+            where:{
+                name:{
+                    [Op.like]: `%${search}%`
+                }
+            }
+        }
+    }
+
     try {
-        const alumni = await Alumni.findAll();
-        res.send(alumni);
+        const university = await University.findAll(exec);
+        res.send(university);
     } catch (err) {
         console.log(err);
     }
@@ -70,7 +84,7 @@ const update = async(req, res, next) =>{
 
         src.on('end', async()=>{
             try{
-                let alumni = await Alumni.findById(id);
+                let university = await University.findById(id);
                 let currentImage = `${config.rootPath}/public/images/alumni/${alumni.alumnus_image}`;
 
                 console.log(currentImage);
@@ -78,14 +92,14 @@ const update = async(req, res, next) =>{
                     fs.unlinkSync(currentImage);
                 }
 
-                alumni = await Alumni.sync();
-                alumni = await Alumni.update(payload,{
+                university = await University.sync();
+                university = await University.update(payload,{
                     where: {
-                        alumniID: req.params.id
+                        universityID: req.params.id
                     }
                 });
                 res.json({
-                    "message": "Alumni Created"
+                    "message": "University Created"
                 });
             } catch(err){
                 fs.unlinkSync(target_path);
@@ -97,10 +111,10 @@ const update = async(req, res, next) =>{
             next(err);
         });
     } else {
-        await Alumni.sync();
-        await Alumni.create(payload);
+        await University.sync();
+        await University.create(payload);
         res.json({
-            "message": "Alumni Created"
+            "message": "University Created"
         });
     }
     } catch(e) {
@@ -110,13 +124,13 @@ const update = async(req, res, next) =>{
 
 const destruct = async(req, res) =>{
     try {
-         await Alumni.destroy({
+         await University.destroy({
             where: {
-                alumniID: req.params.id
+                universityID: req.params.id
               }
         });
         res.json({
-            "message": "Alumni Deleted"
+            "message": "University Deleted"
         });
     } catch (err) {
         console.log(err);
